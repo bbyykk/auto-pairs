@@ -62,7 +62,7 @@ Features
 
 *   Fast Wrap
 
-        input: |[foo, bar()] (press (<M-e> at |)
+        input: (|)[foo, bar()] (press (<M-e> at |)
         output: ([foo, bar()])
 
 *   Quick move char to closed pair
@@ -70,7 +70,7 @@ Features
         input: (|){["foo"]} (press <M-}> at |)
         output: ({["foo"]}|)
 
-        input: |[foo, bar()] (press (<M-]> at |)
+        input: (|)[foo, bar()] (press (<M-]> at |)
         output: ([foo, bar()]|)
 
 *   Quick jump to closed pair.
