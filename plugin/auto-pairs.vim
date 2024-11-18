@@ -669,5 +669,64 @@ endf
 inoremap <silent> <SID>AutoPairsReturn <C-R>=AutoPairsReturn()<CR>
 imap <script> <Plug>AutoPairsReturn <SID>AutoPairsReturn
 
-
 au BufEnter * :call AutoPairsTryInit()
+
+"Auto add the comment after #endif according the content of #if or #ifdef 
+" Function to clean up macros
+function! ProcessMacro(line)
+  " Remove `#if` or `#ifdef`
+  let line = substitute(a:line, '#\(if\|ifdef\)\s\+', '', '')
+
+  " Remove `defined` and strip the outermost parentheses
+  let line = substitute(line, 'defined(\([^()]*\))', '\1', 'g')
+
+  " Enclose the result in /* ... */
+  let line = '/* ' . line . ' */'
+
+  return line
+endfunction
+
+function! SearchBackAndProcessMacro()
+  " Step 1: Search backward for the nearest #if or #ifdef
+  let if_line_num = search('#\(if\|ifdef\)', 'bW')
+  if if_line_num == 0
+    echo "No matching #if or #ifdef found."
+    return
+  endif
+  let if_line = getline(if_line_num)
+
+  " Step 2: Process the #if or #ifdef line
+  return ProcessMacro(if_line)
+endfunction
+
+function! ProcessAndAppendMacro()
+  let processed = SearchBackAndProcessMacro()
+  " Step 3: Search forward for the nearest #endif
+  let endif_line_num = search('^#endif', 'W')
+  if endif_line_num == 0
+    echo "No matching #endif found."
+    return
+  endif
+
+  " Step 4: Append the processed comment to the #endif line
+  let endif_line = getline(endif_line_num)
+  call setline(endif_line_num, '#endif' . ' ' . processed)
+
+  echo "Processed and appended comment."
+endfunction
+
+function! ProcessAndCommentMacro()
+  let curr_line = line('.')
+  let curr_col = col('.')
+  let processed = SearchBackAndProcessMacro()
+
+  call setline(curr_line, '#endif' . ' ' . processed)
+
+  call cursor(curr_line, curr_col)
+  echo "Processed and appended comment."
+endfunction
+
+nnoremap <silent> <Leader>da :call ProcessAndAppendMacro()<CR>
+nnoremap <silent> <Leader>db :call ProcessAndCommentMacro()<CR>
+
+
